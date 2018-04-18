@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title> Triptyk déploiement Node JS</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="tools.js" type="text/javascript"></script> 
+    </head>
+    <body  >
+            <h1> Déploiement d'application node JS</h1>
+            <h3>Choisissez entre le clone ou le revert</h3>
+            <button onclick="add_clone()" type="button" id="clone">Clone</button>
+            <button onclick="add_revert()" type="button" id="revert">Revert</button>
+            <p id="place"></p>
+            <p id="place2"></p>
+            <button onclick="writeJ()" type="button" id="clone">Appliquer</button>
+            <button onclick="ip()" type="button" id="clone">Start</button>
+            <div class="response"></div>
+        <!--[if lt IE 7]>
+            <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="#">upgrade your browser</a> to improve your experience.</p>
+        <![endif]-->
+        
+    </body>
+    <script>
+        var id = 2;
+        var html = '<div> <p>Ip du serveur? <input type="text" id="host"><label id="resH"></label></p></br></div>';
+        html += '<div> <p>Nom du projet <input  type="text" id="name" ></p></br></div>';
+html += '<div> <p>Nom de la base de données <input type="text" id="db"></p></br></div>';
+html += '<div> <p>Nom du github <input type="text" id="github" value=></p></br></div>';
+html += '<div> <p>Nom de \'utilisateur sur le serveur  <input type="text" id="user" value=></p></br></div>';
+html += '<div> <p>Avez vous une base de donnée déjà présente sur le serveur?';
+html += '<form action=""><input type="radio" onclick=script_maj() name="gender" value="oui">Oui<br><input type="radio" name="gender" onclick=Dscript_maj() value="non">Non</br><input type="radio" name="gender" checked="checked" value="null">Je ne souhaite pas utiliser de base de données</form>';
+
+var html2 = '<div> Scripts de MAJ </br> </div>';
+html2 += '<div> Combiens de script à transmettre? <input type="number" id="maj" name="maj" >  <button onclick=addText()> ADD </button> </br> </div> ';
+
+var htmlRevert = '<div> <p>Ip du serveur? <input type="text" id="host"><label id="resH"></label></p></br></div>';
+    function add_clone(){
+        document.getElementById("place").innerHTML = html;
+        document.getElementById("clone").style.backgroundColor = "#A9A9A9";
+        document.getElementById("revert").style.backgroundColor = "";
+        const fs = require('fs');
+        var contents = fs.readFileSync("config.json");
+        var json = JSON.parse(contents);
+        document.getElementById("host").defaultValue = json.host;
+        document.getElementById("name").defaultValue = json.name;
+        document.getElementById("db").defaultValue = json.db;
+        document.getElementById("github").defaultValue = json.github;
+        document.getElementById("user").defaultValue = json.user;
+    }
+
+    function add_revert(){
+        document.getElementById("place").innerHTML = '';
+        document.getElementById("place").innerHTML = htmlRevert;
+        const fs = require('fs');
+        var contents = fs.readFileSync("config.json");
+        var json = JSON.parse(contents);
+        document.getElementById("host").defaultValue = json.host;
+        document.getElementById("revert").style.backgroundColor = "#A9A9A9";
+        document.getElementById("clone").style.backgroundColor = "";
+        Dscript_maj();
+    }
+
+    function script_maj(){
+        document.getElementById("place2").innerHTML = html2;
+    }
+    function Dscript_maj(){
+        document.getElementById("place2").innerHTML = '';
+    }
+    function addText(){ 
+        html2 = '';
+            html2 = '<div> Scripts de MAJ </br> </div>';
+            html2 += '<div> Combiens de script à transmettre? <input type="number" id="maj" name="maj" >  <button onclick=addText()> ADD </button> </br> </div> ';
+        var nbre = document.getElementById("maj").value;
+        var id = 1;
+        while (nbre>=id){
+            html2 += '<input type="text" id="maj'+id+'" name="maj'+id+'" > script n°'+ id +'</br>';
+            id ++;
+        }
+        document.getElementById("place2").innerHTML = html2;
+               
+    }
+
+    function writeJ(){
+        const fs = require('fs');
+        const host = document.getElementById("host").value;
+        const name = document.getElementById("name").value;
+        const db = document.getElementById("db").value;
+        const github = document.getElementById("github").value;
+        const user = document.getElementById("user").value;
+        let test = {
+            host:host,
+            name:name,
+            db:db,
+            github:github,
+            user:user
+        };
+        let data = JSON.stringify(test);
+        fs.writeFileSync('config.json',data);
+        location.reload();
+    }
+    function ip(){
+        globalInit();
+    }
+   
+    
+    </script>
+</html>
