@@ -122,6 +122,7 @@ let RemoveOld = async ()=> {
             console.log('dossier supprimer');
         }
        catch(error){
+        $( ".response" ).append( "<p>Impossible de supprimer le dossier : "+olddir+" vérifier les droits </p>" );
            console.log(error.toString('utf8'));
        }
     }
@@ -152,7 +153,7 @@ let Db = async () =>{
      }
      else if (($('#rbNull').is(':checked'))) {
         console.log('rb null coché');
-       
+        await npm();
      }
      else{
         console.log('rb non cohé');
@@ -254,13 +255,65 @@ let MongoRestore = async ()=> {
 let npm = async ()=> {
     try{
         await ssh.exec('cd /var/www/' + config.name + '/' + hash.replace('\n', '').replace('\r', '') + '/ && npm install');
-        console.log('Paquets npm installés'.bgGreen);
+        console.log('Paquets npm installés');
         $( ".response" ).append( "<p>NPM installés </p>" );
+        await pm2Stop();
     }
     catch(error){
         console.log(error.toString('utf8'));
-        console.log('Paquets NPM déjà installés'.bgBlue);
+        console.log('Paquets NPM déjà installés');
         $( ".response" ).append( "<p>NPM installé </p>" );
+        await pm2Stop();
+    }
+}
+
+//Stop le processus PM2 portant le nom du projet
+let pm2Stop = async () =>{
+    try{
+        await ssh.exec('pm2 stop ' + config.name)
+        $( ".response" ).append( "<p>PM2 Stop </p>" );
+        console.log('PM2 stopper');
+        await pm2Delete();
+    }
+    catch(error){
+        console.log(error.toString('utf8'));
+        $( ".response" ).append( "<p>Pas de processus PM2 actif pour ce nom de projet </p>" );
+        console.log('Il n\'y a pas de process actif pour ce projet');
+        await pm2Delete();
+      }  
+}
+
+
+//Supprime le conteneur pm2 portant le nom du projet
+let pm2Delete = async ()=> {
+        try{
+            await ssh.exec('pm2 delete ' + config.name)
+            $( ".response" ).append( "<p>PM2 Delete </p>" );
+            console.log('PM2 supprimer');
+            await pm2Start();
+        }
+        catch(error){
+            console.log(error.toString('utf8'));
+            $( ".response" ).append( "<p>Pas de processus PM2 supprimable pour ce nom de projet </p>" );
+            console.log('Il n\'y a pas de process supprimable pour ce projet');
+            await pm2Start();
+          }  
+}
+
+
+/* Attention il faut installer : "npm i -g babel-cli" car pm2 à des soucis de compréhension avec node */
+//Démarre le process grâce au fichier app.js situer dans /app
+let pm2Start = async ()=> {
+    try {
+    await ssh.exec('pm2 start /var/www/' + config.name + '/' + hash.replace('\n', '').replace('\r', '') + '/app.js --name=' + config.name)
+        console.log('PM2 Démarrer');
+        $( ".response" ).append( "<p>PM2 Start </p>" );
+       
+    }
+    catch(error){
+        console.log(error.toString('utf8'));
+        $( ".response" ).append( "<p>Une erreur est survenue lors du démarrage du processus PM2 </p>" );
+        
     }
 }
 
@@ -272,4 +325,113 @@ let globalInit = async() =>
     await clone();
     await gitclone();
     await Db();
+   
+}
+
+
+//Listing des versions que l'on peut Revert
+var numberRevert=2;
+let revert = async ()=> {
+    let data =  await ssh.exec("cd /var/www/" + config.name + " && ls -l | nl | head -n "+numberRevert+ " | tail -1");
+       console.log(data);
+       $( ".response" ).append("<div>"+data+"</div>");
+       numberRevert++;
+       if (numberRevert<11){
+        revert();
+       }
+       
+    //    prompt.start();
+    //    let {numberR} = await prompt.get(["numberR"]);
+    //            number=numberR;
+    //            console.log(number);
+}
+      
+
+//Récupération du nom de dossier à Revert
+let rhash = async ()=> {
+    var number = $('#NRevert').val();
+    console.log(number);
+   let rhash = await ssh.exec("cd /var/www/" + config.name + " && ls -l | head -n " + number + " | tail -n 1 | cut -c48-88");
+   $( ".response" ).append("<div>la version suivante sera revert : "+rhash+"</div>");
+   console.log('La version suivantes sera revert :' + rhash);
+       hashToRevert = rhash;
+}
+
+
+//Fonction qui supprime l'ancienne DB
+let Mongodelete = async ()=> {
+   await ssh.exec('mongo ' + config.db + ' --eval "db.dropDatabase()"')
+       console.log('Ancienne db supprimée'); 
+}
+
+
+//Fonction qui va restore la DB de la version à Revert, elle utilise le dossier database présent dans /var/www/project/database
+let Mongocreate = async ()=> {
+   try{
+       await ssh.exec('mongorestore --db ' + config.db + ' /var/www/' + config.name + '/' + hashToRevert.replace('\n', '').replace('\r', '') + '/database/'+config.db);
+       console.log('DB restore');
+   }
+   catch(error){
+       console.log(error.toString('utf8'));
+   }
+}
+
+//Stop le processus PM2 portant le nom du projet
+let pm2StopR = async () =>{
+    try{
+        await ssh.exec('pm2 stop ' + config.name)
+        $( ".response" ).append( "<p>PM2 Stop </p>" );
+        console.log('PM2 stopper');
+        
+    }
+    catch(error){
+        console.log(error.toString('utf8'));
+        $( ".response" ).append( "<p>Pas de processus PM2 actif pour ce nom de projet </p>" );
+        console.log('Il n\'y a pas de process actif pour ce projet');
+        
+      }  
+}
+
+
+//Supprime le conteneur pm2 portant le nom du projet
+let pm2DeleteR = async ()=> {
+        try{
+            await ssh.exec('pm2 delete ' + config.name)
+            $( ".response" ).append( "<p>PM2 Delete </p>" );
+            console.log('PM2 supprimer');
+            
+        }
+        catch(error){
+            console.log(error.toString('utf8'));
+            $( ".response" ).append( "<p>Pas de processus PM2 supprimable pour ce nom de projet </p>" );
+            console.log('Il n\'y a pas de process supprimable pour ce projet');
+            
+          }  
+}
+//Fonction qui va démarrer le processus pm2 de la version a revert
+let pm2StartR = async ()=> {
+   try {
+       //FIXME: Endroit du script app.js
+   await ssh.exec('pm2 start /var/www/' + config.name + '/' + hashToRevert.replace('\n', '').replace('\r', '') + '/app.js --name=' + config.name)
+       console.log('PM2 Démarrer');
+       
+   }
+   catch(error){
+       console.log(error.toString('utf8'));
+      
+   }
+}
+
+
+let globalRevert = async() =>
+{
+    await pingHost();
+    await isInstalled();
+    await rhash();
+    await Mongodelete();
+    await Mongocreate();
+    await pm2StopR();
+    await pm2DeleteR();
+    await pm2StartR();
+   
 }

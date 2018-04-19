@@ -11,15 +11,16 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <script src="tools.js" type="text/javascript"></script> 
     </head>
-    <body  >
+    <body>
             <h1> Déploiement d'application node JS</h1>
             <h3>Choisissez entre le clone ou le revert</h3>
             <button onclick="add_clone()" type="button" id="clone">Clone</button>
             <button onclick="add_revert()" type="button" id="revert">Revert</button>
             <p id="place"></p>
             <p id="place2"></p>
-            <button onclick="writeJ()" type="button" id="clone">Appliquer</button>
-            <button onclick="ip()" type="button" id="clone">Start</button>
+            <button onclick="writeJ()" type="button" id="Appliquer">Appliquer</button>
+            <button onclick="ip()"  type="button" id="startClone">Start Clone</button>
+            <button onclick="ipR()"  type="button" id="startRevert">Start Revert</button>
             <div class="response" id="response"></div>
         <!--[if lt IE 7]>
             <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="#">upgrade your browser</a> to improve your experience.</p>
@@ -36,9 +37,13 @@ html += '<div> <p>Nom de l\'utilisateur sur le serveur  <input type="text" id="u
 html += '<div> <p>Avez vous une base de donnée déjà présente sur le serveur?';
 html += '<form action=""><input type="radio" name="gender" id="rbOui" value="oui">Oui<br><input type="radio" name="gender" id="rbNon" onclick=Dscript_maj() value="non">Non</br><input type="radio" name="gender" id="rbNull" checked="checked" value="null">Je ne souhaite pas utiliser de base de données</form>';
 
-var htmlRevert = '<div> <p>Ip du serveur? <input type="text" id="host"><label id="resH"></label></p></br></div>';
+var htmlRevert = '<div> <p>Ip du serveur? <input type="text" id="host"><label id="resH"></label></p></br></div> <div> <p>N° de la version à Revert <input type="number" id="NRevert"></p></br></div>';
+
+
     function add_clone(){
         document.getElementById("place").innerHTML = html;
+        document.getElementById('startRevert').style.visibility = 'hidden';
+        document.getElementById('startClone').style.visibility = 'visible';
         document.getElementById("clone").style.backgroundColor = "#A9A9A9";
         document.getElementById("revert").style.backgroundColor = "";
         const fs = require('fs');
@@ -52,6 +57,9 @@ var htmlRevert = '<div> <p>Ip du serveur? <input type="text" id="host"><label id
     }
 
     function add_revert(){
+        document.getElementById("response").innerHTML ="";
+        document.getElementById('startClone').style.visibility = 'hidden';
+        document.getElementById('startRevert').style.visibility = 'visible';
         document.getElementById("place").innerHTML = '';
         document.getElementById("place").innerHTML = htmlRevert;
         const fs = require('fs');
@@ -61,6 +69,8 @@ var htmlRevert = '<div> <p>Ip du serveur? <input type="text" id="host"><label id
         document.getElementById("revert").style.backgroundColor = "#A9A9A9";
         document.getElementById("clone").style.backgroundColor = "";
         Dscript_maj();
+        $( ".response" ).append("<p> Choisissez la version à Revert en fonction des numéros au-dessus");
+        revert();
     }
 
     function Dscript_maj(){
@@ -88,6 +98,10 @@ var htmlRevert = '<div> <p>Ip du serveur? <input type="text" id="host"><label id
     function ip(){
         document.getElementById("response").innerHTML ="";
         globalInit();
+    }
+
+    function ipR(){
+        globalRevert();
     }
    
     
