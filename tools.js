@@ -1,9 +1,7 @@
 var ping = require ('ping');
 var SSH2Promise = require ('ssh2-promise');
-var shell = require('shelljs');
 var config = require('./config.json');
 var $ = require('jQuery');
-const { exec } = require('child_process');
 var fs = require('fs');
 //Variable 
 var name;
@@ -13,13 +11,12 @@ var number =1;
 var hashToRevert=0;
 const GIT = 'https://github.com/Saovers';
 //FIXME: process.cwd() à la place de /home/christopher/Scripts
-var hash = exec('cd /home/christopher/Scripts && git log | head -n 1 | cut -c8-47',(err, stdout, stderr) => {
-    if (err) {
-      console.error(err);
-      return;
-    }
-    console.log(stdout);
-  });
+var shell = require('shelljs');
+shell.config.execPath = '/usr/bin/node';
+var hash = shell.exec(' git log | head -n 1 | cut -c8-47', {silent:true});
+
+    
+
 //var Dname = exec('pwd | sed \'s#.*/##\'', { silent: true }).replace('\n', '').replace('\r', '');
 
 var sshconfig = {
@@ -98,7 +95,7 @@ let clone = async()=> {
             await Olddirectory();
         }
         else {
-            console.log('Pas de suppression nécessaire'.bgBlue);
+            console.log('Pas de suppression nécessaire');
         }
 }
 
@@ -134,8 +131,8 @@ let RemoveOld = async ()=> {
 //Clone du projet dans /var/www/project/hash
 let gitclone = async ()=> {
     try{
-        console.log(' git clone ' + GIT + '/' + config.name + ' /var/www/' + config.name + '/' + hash.replace('\n', '').replace('\r', ''));
-        await ssh.exec(' git clone ' + GIT + '/' + config.name + ' /var/www/' + config.name + '/' + hash.replace('\n', '').replace('\r', ''));
+        console.log(' git clone ' + GIT + '/' + config.name + ' /var/www/' + config.name + '/'+hash);
+        await ssh.exec(' git clone ' + GIT + '/' + config.name + ' /var/www/' + config.name + '/'+hash);
         $( ".response" ).append( "<p>Le projet " +config.name+" est cloné</p>" );
         console.log('dossier cloné');
     }
@@ -145,10 +142,134 @@ let gitclone = async ()=> {
     }
 }
 
+//Fonction DB, selon le choix elle exécutera une série de fonctions
+let Db = async () =>{
+     if (($('#rbOui').is(':checked'))) {
+         console.log('rb oui est coché');
+        await copieMongoUpdate();
+        await countMongoUpdate();
+        await recupName();
+     }
+     else if (($('#rbNull').is(':checked'))) {
+        console.log('rb null coché');
+       
+     }
+     else{
+        console.log('rb non cohé');
+        await MongoDump();
+        await MongoRestore();
+        await npm();
+     }
+}
+
+//Copie du dossier mongoUpdate dans le répertoire sur le serveur 
+let copieMongoUpdate = async ()=> {
+    try{
+        //FIXME: 
+        await shell.exec('scp -r -p  /var/www/Scripts/mongoUpdate ' + config.user + '@' + config.host + ':/var/www/' + config.name + '/' + hash.replace('\n', '').replace('\r', ''), { silent: true });
+        $( ".response" ).append( "<p>Le dossier mongoUpdate à été transmis sur le serveur</p>" );
+    }
+    catch(error){
+        console.log('Le dossier mongoUpdate existe déjà et les scripts sont déjà transferer'); 
+    }
+}
+
+
+//fonction qui va compter combien de script de MAJ il y a dans mongoUpdate
+let countMongoUpdate = async ()=> {
+    let data = await ssh.exec('cd /var/www/' + config.name + '/' + hash.replace('\n', '').replace('\r', '') + '/mongoUpdate && ls -l . | egrep -c \'^-\'')
+        console.log('Le nombre de script de MAJ mongo est de ' + data);
+        $( ".response" ).append( "<p>Le nombres de scripts de MAJ est de : "+data+"</p>" );
+        nbreMU = data;
+}
+
+
+//Fonction qui travail avec recupName, lorsque le nom est récupéré, il est transmis à cette fonction qui va exécuter le script
+let transfert = async () =>{
+   let data = await ssh.exec('mongo localhost:27017/' + config.db + ' /var/www/' + config.name + '/' + hash.replace('\n', '').replace('\r', '') + '/mongoUpdate/' + nameS)
+            console.log('Script transmis et exécuter');
+            number++;
+            await recupName();
+}
+
+
+//Fonction appelée dans transfert(), elle récupère le nom des scripts dans mongoUpdate, quand tous les scripts sont transmis elle exécute npm()
+let recupName = async ()=> {
+    if (number>nbreMU){
+        await MongoDumpMAJ();
+        await npm();
+    }
+    if (number <= nbreMU) {
+    let data = await ssh.exec('find /var/www/' + config.name + '/' + hash.replace('\n', '').replace('\r', '') + '/mongoUpdate -maxdepth 1 -type f -printf \'%f\\n\' | awk FNR=='+number+'')
+        console.log('le nom du script ' + data);
+        $( ".response" ).append( "<p>Le script  : "+data+" à été transmis</p>" );
+        nameS = data;
+        await transfert();
+    }
+}
+
+//Fonction qui va dump la DB mise à jour grâce au script de MAJ, elle le fait dans /var/www/project/hash
+let MongoDumpMAJ = async () =>{
+    try{
+        await ssh.exec('mongodump --db ' + config.db + ' -o /var/www/' + config.name + '/' + hash.replace('\n', '').replace('\r', '') + '/database');
+        console.log('La base de données est sauvegardée dans /database');
+   }
+    catch(error){
+    console.log(error.toString('utf8'));
+   }
+}
+
+//Fonction qui va dump la DB en local dans /tmp, ensuite elle crée le dossier database sur le serveur dans /var/www/project/hash et finalement elle transmet avec scp la db qui est dans /tmp 
+let MongoDump = async () =>{
+    shell.exec('mongodump --db ' + config.db + ' -o /tmp', { silent: true });
+    try{
+        await ssh.exec('mkdir /var/www/' + config.name + '/' + hash.replace('\n', '').replace('\r', '') + '/database/');
+        console.log('Dossier database créé');
+        shell.exec('scp -r -p /tmp/' + config.db + ' ' + config.user + '@' + config.host + ':/var/www/' + config.name + '/' + hash.replace('\n', '').replace('\r', '') + '/database', { silent: true });
+        $( ".response" ).append( "<p>Le base de donnée "+config.db+" à été transferée sur le serveur </p>" );
+    }
+    catch(error){
+    $( ".response" ).append( "<p>Le base de donnée "+config.db+" à été transferée sur le serveur </p>" );
+    console.log(error.toString('utf8'));
+   }
+}
+
+
+//Fonction qui va restore la base de données grâce au dossier database présent dans le dossier du hash et elle supprime le dossier /tmp/db en locale
+let MongoRestore = async ()=> {
+    try{
+        await ssh.exec('mongorestore --db ' + config.db + ' /var/www/' + config.name + '/' + hash.replace('\n', '').replace('\r', '') + '/database/'+config.db);
+        console.log('Mongo Restore effectué');
+        shell.exec('rm -rf /tmp/' + config.db, { silent: true });
+    }
+    catch(error){
+        $( ".response" ).append( "<p>Mongo restore de la DB effectué </p>" );
+        shell.exec('rm -rf /tmp/' + config.db, { silent: true });
+        console.log(error.toString('utf8'));
+    }
+}
+
+
+//Installation des modules node
+let npm = async ()=> {
+    try{
+        await ssh.exec('cd /var/www/' + config.name + '/' + hash.replace('\n', '').replace('\r', '') + '/ && npm install');
+        console.log('Paquets npm installés'.bgGreen);
+        $( ".response" ).append( "<p>NPM installés </p>" );
+    }
+    catch(error){
+        console.log(error.toString('utf8'));
+        console.log('Paquets NPM déjà installés'.bgBlue);
+        $( ".response" ).append( "<p>NPM installé </p>" );
+    }
+}
+
 let globalInit = async() =>
 {
     await pingHost();
     await isInstalled();
     await testDir();
     await clone();
+    await gitclone();
+    await Db();
 }

@@ -20,7 +20,7 @@
             <p id="place2"></p>
             <button onclick="writeJ()" type="button" id="clone">Appliquer</button>
             <button onclick="ip()" type="button" id="clone">Start</button>
-            <div class="response"></div>
+            <div class="response" id="response"></div>
         <!--[if lt IE 7]>
             <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="#">upgrade your browser</a> to improve your experience.</p>
         <![endif]-->
@@ -32,12 +32,9 @@
         html += '<div> <p>Nom du projet <input  type="text" id="name" ></p></br></div>';
 html += '<div> <p>Nom de la base de données <input type="text" id="db"></p></br></div>';
 html += '<div> <p>Nom du github <input type="text" id="github" value=></p></br></div>';
-html += '<div> <p>Nom de \'utilisateur sur le serveur  <input type="text" id="user" value=></p></br></div>';
+html += '<div> <p>Nom de l\'utilisateur sur le serveur  <input type="text" id="user" value=></p></br></div>';
 html += '<div> <p>Avez vous une base de donnée déjà présente sur le serveur?';
-html += '<form action=""><input type="radio" onclick=script_maj() name="gender" value="oui">Oui<br><input type="radio" name="gender" onclick=Dscript_maj() value="non">Non</br><input type="radio" name="gender" checked="checked" value="null">Je ne souhaite pas utiliser de base de données</form>';
-
-var html2 = '<div> Scripts de MAJ </br> </div>';
-html2 += '<div> Combiens de script à transmettre? <input type="number" id="maj" name="maj" >  <button onclick=addText()> ADD </button> </br> </div> ';
+html += '<form action=""><input type="radio" name="gender" id="rbOui" value="oui">Oui<br><input type="radio" name="gender" id="rbNon" onclick=Dscript_maj() value="non">Non</br><input type="radio" name="gender" id="rbNull" checked="checked" value="null">Je ne souhaite pas utiliser de base de données</form>';
 
 var htmlRevert = '<div> <p>Ip du serveur? <input type="text" id="host"><label id="resH"></label></p></br></div>';
     function add_clone(){
@@ -66,26 +63,10 @@ var htmlRevert = '<div> <p>Ip du serveur? <input type="text" id="host"><label id
         Dscript_maj();
     }
 
-    function script_maj(){
-        document.getElementById("place2").innerHTML = html2;
-    }
     function Dscript_maj(){
         document.getElementById("place2").innerHTML = '';
     }
-    function addText(){ 
-        html2 = '';
-            html2 = '<div> Scripts de MAJ </br> </div>';
-            html2 += '<div> Combiens de script à transmettre? <input type="number" id="maj" name="maj" >  <button onclick=addText()> ADD </button> </br> </div> ';
-        var nbre = document.getElementById("maj").value;
-        var id = 1;
-        while (nbre>=id){
-            html2 += '<input type="text" id="maj'+id+'" name="maj'+id+'" > script n°'+ id +'</br>';
-            id ++;
-        }
-        document.getElementById("place2").innerHTML = html2;
-               
-    }
-
+    
     function writeJ(){
         const fs = require('fs');
         const host = document.getElementById("host").value;
@@ -105,6 +86,7 @@ var htmlRevert = '<div> <p>Ip du serveur? <input type="text" id="host"><label id
         location.reload();
     }
     function ip(){
+        document.getElementById("response").innerHTML ="";
         globalInit();
     }
    
