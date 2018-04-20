@@ -37,11 +37,13 @@ let pingHost =async () =>{
                         if (isAlive.alive){
                             console.log('Host OK');
                             document.getElementById('resH').innerHTML = "Host OK";
+                            
                         }
                         else{
                             console.log('Host unreachable');
                             document.getElementById('resH').innerHTML = "Host Down";
                             document.getElementById('place2').innerHTML = "Impossible de continuer plus loin si l'host est down veuiller changer l'ip de votre serveur";
+                           
                         }
             });             
         });
@@ -166,12 +168,12 @@ let Db = async () =>{
 //Copie du dossier mongoUpdate dans le répertoire sur le serveur 
 let copieMongoUpdate = async ()=> {
     try{
-        //FIXME: 
-        await shell.exec('scp -r -p  /var/www/Scripts/mongoUpdate ' + config.user + '@' + config.host + ':/var/www/' + config.name + '/' + hash.replace('\n', '').replace('\r', ''), { silent: true });
+        //FIXME: Tous les projets devront se trouver en ~ si on laisse la fonction comme ça
+        await shell.exec('scp -r -p  ~/'+config.name+'/mongoUpdate ' + config.user + '@' + config.host + ':/var/www/' + config.name + '/' + hash.replace('\n', '').replace('\r', ''), { silent: true });
         $( ".response" ).append( "<p>Le dossier mongoUpdate à été transmis sur le serveur</p>" );
     }
     catch(error){
-        console.log('Le dossier mongoUpdate existe déjà et les scripts sont déjà transferer'); 
+        console.log(error.toString('utf8')); 
     }
 }
 
@@ -319,7 +321,8 @@ let pm2Start = async ()=> {
 
 let globalInit = async() =>
 {
-    await pingHost();
+    //FIXME: 
+    //await pingHost();
     await isInstalled();
     await testDir();
     await clone();
@@ -351,6 +354,9 @@ let revert = async ()=> {
 let rhash = async ()=> {
     var number = $('#NRevert').val();
     console.log(number);
+    if (number==""){
+        $( ".response" ).append("<div>Attention vous n'avez pas rensigné de numéro de version à Revert</div>");
+    }
    let rhash = await ssh.exec("cd /var/www/" + config.name + " && ls -l | head -n " + number + " | tail -n 1 | cut -c48-88");
    $( ".response" ).append("<div>la version suivante sera revert : "+rhash+"</div>");
    console.log('La version suivantes sera revert :' + rhash);
@@ -418,6 +424,7 @@ let pm2StartR = async ()=> {
    }
    catch(error){
        console.log(error.toString('utf8'));
+       $( ".response" ).append( "<p>Une erreur est survenue dans le démarrage de l'app.js , vérifier le chemin dans le code </p>" );
       
    }
 }
@@ -425,7 +432,8 @@ let pm2StartR = async ()=> {
 
 let globalRevert = async() =>
 {
-    await pingHost();
+    //FIXME: 
+    //await pingHost();
     await isInstalled();
     await rhash();
     await Mongodelete();

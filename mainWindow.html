@@ -42,6 +42,7 @@ var htmlRevert = '<div> <p>Ip du serveur? <input type="text" id="host"><label id
 
     function add_clone(){
         document.getElementById("place").innerHTML = html;
+        document.getElementById("response").innerHTML ="";
         document.getElementById('startRevert').style.visibility = 'hidden';
         document.getElementById('startClone').style.visibility = 'visible';
         document.getElementById("clone").style.backgroundColor = "#A9A9A9";
@@ -96,12 +97,26 @@ var htmlRevert = '<div> <p>Ip du serveur? <input type="text" id="host"><label id
         location.reload();
     }
     function ip(){
-        document.getElementById("response").innerHTML ="";
-        globalInit();
+        pingHost();
+        if(document.getElementById('resH').innerHTML = "Host OK"){
+            globalInit();
+        }
+        else{
+            document.getElementById("response").innerHTML ="Une erreur est survenue";
+
+        }
+        
     }
 
     function ipR(){
-        globalRevert();
+        pingHost();
+        if(document.getElementById('resH').innerHTML = "Host OK"){
+            globalRevert();
+        }
+        else{
+            document.getElementById("response").innerHTML ="L'host n'est pas joignable veuillez changer votre IP et vérifier que le serveur soit disponible";
+        }
+    
     }
    
     

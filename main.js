@@ -15,7 +15,7 @@ installExtension(REACT_DEVELOPER_TOOLS)
 //Listen for app to be ready
 app.on('ready',function(){
     //Create a window
-    mainWindow = new BrowserWindow({});
+    mainWindow = new BrowserWindow({width: 1800, height: 1200});
     //Load html into window
     mainWindow.loadURL(url.format({
         pathname : path.join(__dirname,'mainWindow.html'),
