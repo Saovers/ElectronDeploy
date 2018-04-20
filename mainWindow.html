@@ -48,7 +48,7 @@ var htmlRevert = '<div> <p>Ip du serveur? <input type="text" id="host"><label id
         document.getElementById("clone").style.backgroundColor = "#A9A9A9";
         document.getElementById("revert").style.backgroundColor = "";
         const fs = require('fs');
-        var contents = fs.readFileSync("config.json");
+        var contents = fs.readFileSync("./resources/app/config.json");
         var json = JSON.parse(contents);
         document.getElementById("host").defaultValue = json.host;
         document.getElementById("name").defaultValue = json.name;
@@ -64,7 +64,7 @@ var htmlRevert = '<div> <p>Ip du serveur? <input type="text" id="host"><label id
         document.getElementById("place").innerHTML = '';
         document.getElementById("place").innerHTML = htmlRevert;
         const fs = require('fs');
-        var contents = fs.readFileSync("config.json");
+        var contents = fs.readFileSync("./resources/app/config.json");
         var json = JSON.parse(contents);
         document.getElementById("host").defaultValue = json.host;
         document.getElementById("revert").style.backgroundColor = "#A9A9A9";
