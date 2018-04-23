@@ -9,12 +9,13 @@ var olddir;
 var nameS;
 var number =1;
 var hashToRevert=0;
-const GIT = 'https://github.com/Saovers';
-//FIXME: process.cwd() à la place de /home/christopher/Scripts
+//const GIT = 'git@github.com:TRIPTYK';
 var shell = require('shelljs');
 shell.config.execPath = '/usr/bin/node';
-var hash = shell.exec(' git log | head -n 1 | cut -c8-47', {silent:true});
-
+var hash = shell.exec(' cd ~/'+config.name+' && git log | head -n 1 | cut -c8-47', {silent:true});
+console.log('cd ~/'+config.name+' && git log | head -n 1 | cut -c8-47');
+console.log(hash);
+let SSHDirectory = shell.exec('echo $HOME', {silent:true}).replace('\n', '').replace('\r', '');
     
 
 //var Dname = exec('pwd | sed \'s#.*/##\'', { silent: true }).replace('\n', '').replace('\r', '');
@@ -22,7 +23,7 @@ var hash = shell.exec(' git log | head -n 1 | cut -c8-47', {silent:true});
 var sshconfig = {
     host: config.host,
     username: config.user,
-    identity: '/home/christopher/.ssh/id_rsa'
+    identity:  ''+SSHDirectory+'/.ssh/id_rsa'
   }
   var ssh = new SSH2Promise(sshconfig);
 
@@ -103,7 +104,7 @@ let clone = async()=> {
 
 //Fonction appelée dans clone, elle prend le nom du dossier le plus vieux
 let Olddirectory = async ()=> {
-    let olddirl = await ssh.exec('cd /var/www/' + config.name + ' && ls -tl | tail -n 1 | cut -c48-96');
+    let olddirl = await ssh.exec('cd /var/www/' + config.name + ' && ls -tl | tail -n 1 | cut -c42-96');
     $( ".response" ).append( "<p>Le dossier le plus vieux est : "+olddirl+"</p>" );
         console.log('Le dossier le plus vieux est : ' + olddirl);
         olddir = olddirl;
@@ -112,7 +113,7 @@ let Olddirectory = async ()=> {
 
 //Fonction appelée dans Olddirectory, elle supprime le vieux dossier s'il y a + de 10 sous dossiers dans le projets
 let RemoveOld = async ()=> {
-    if (olddir==""){
+    if (olddir == null || olddir == ''){
         console.log('La variable olddir est vide, attention cela risque de supprimer tous vos dossiers, vérifier dans le code le soucis');
     }
     else{
@@ -134,8 +135,8 @@ let RemoveOld = async ()=> {
 //Clone du projet dans /var/www/project/hash
 let gitclone = async ()=> {
     try{
-        console.log(' git clone ' + GIT + '/' + config.name + ' /var/www/' + config.name + '/'+hash);
-        await ssh.exec(' git clone ' + GIT + '/' + config.name + ' /var/www/' + config.name + '/'+hash);
+        console.log(' git clone ' + config.github + '/' + config.name + ' /var/www/' + config.name + '/'+hash);
+        await ssh.exec(' git clone ' + config.github + '/' + config.name + ' /var/www/' + config.name + '/'+hash);
         $( ".response" ).append( "<p>Le projet " +config.name+" est cloné</p>" );
         console.log('dossier cloné');
     }
@@ -173,6 +174,7 @@ let copieMongoUpdate = async ()=> {
         $( ".response" ).append( "<p>Le dossier mongoUpdate à été transmis sur le serveur</p>" );
     }
     catch(error){
+        $( ".response" ).append( "<p>Erreur lors du transfert, votre dossier se trouve bien en ~/Nom_du_projet</p>" );
         console.log(error.toString('utf8')); 
     }
 }
@@ -232,6 +234,7 @@ let MongoDump = async () =>{
         $( ".response" ).append( "<p>Le base de donnée "+config.db+" à été transferée sur le serveur </p>" );
     }
     catch(error){
+        shell.exec('scp -r -p /tmp/' + config.db + ' ' + config.user + '@' + config.host + ':/var/www/' + config.name + '/' + hash.replace('\n', '').replace('\r', '') + '/database', { silent: true });
     $( ".response" ).append( "<p>Le base de donnée "+config.db+" à été transferée sur le serveur </p>" );
     console.log(error.toString('utf8'));
    }
@@ -314,6 +317,7 @@ let pm2Start = async ()=> {
     }
     catch(error){
         console.log(error.toString('utf8'));
+        $( ".response" ).append( hash.replace('\n', '').replace('\r', '') );
         $( ".response" ).append( "<p>Une erreur est survenue lors du démarrage du processus PM2 </p>" );
         
     }
@@ -321,8 +325,7 @@ let pm2Start = async ()=> {
 
 let globalInit = async() =>
 {
-    //FIXME: 
-    //await pingHost();
+
     await isInstalled();
     await testDir();
     await clone();
@@ -331,7 +334,7 @@ let globalInit = async() =>
    
 }
 
-
+/* ------------------------------------------------------------------------------------Partie Revert-------------------------------------------------------------------*/
 //Listing des versions que l'on peut Revert
 var numberRevert=2;
 let revert = async ()=> {
@@ -342,11 +345,6 @@ let revert = async ()=> {
        if (numberRevert<11){
         revert();
        }
-       
-    //    prompt.start();
-    //    let {numberR} = await prompt.get(["numberR"]);
-    //            number=numberR;
-    //            console.log(number);
 }
       
 
@@ -357,7 +355,7 @@ let rhash = async ()=> {
     if (number==""){
         $( ".response" ).append("<div>Attention vous n'avez pas rensigné de numéro de version à Revert</div>");
     }
-   let rhash = await ssh.exec("cd /var/www/" + config.name + " && ls -l | head -n " + number + " | tail -n 1 | cut -c48-88");
+   let rhash = await ssh.exec("cd /var/www/" + config.name + " && ls -l | head -n " + number + " | tail -n 1 | cut -c42-88");
    $( ".response" ).append("<div>la version suivante sera revert : "+rhash+"</div>");
    console.log('La version suivantes sera revert :' + rhash);
        hashToRevert = rhash;
@@ -366,7 +364,8 @@ let rhash = async ()=> {
 
 //Fonction qui supprime l'ancienne DB
 let Mongodelete = async ()=> {
-   await ssh.exec('mongo ' + config.db + ' --eval "db.dropDatabase()"')
+   await ssh.exec('mongo ' + config.db + ' --eval "db.dropDatabase()"');
+   $( ".response" ).append( "<p> Base de données "+config.db+" mongo supprimée </p>" );
        console.log('Ancienne db supprimée'); 
 }
 
@@ -375,9 +374,11 @@ let Mongodelete = async ()=> {
 let Mongocreate = async ()=> {
    try{
        await ssh.exec('mongorestore --db ' + config.db + ' /var/www/' + config.name + '/' + hashToRevert.replace('\n', '').replace('\r', '') + '/database/'+config.db);
+       $( ".response" ).append( "<p> La base de données de la version à revert à étée restorée </p>" );
        console.log('DB restore');
    }
    catch(error){
+    $( ".response" ).append( "<p> La base de données à été restorées </p>" );
        console.log(error.toString('utf8'));
    }
 }
@@ -432,14 +433,24 @@ let pm2StartR = async ()=> {
 
 let globalRevert = async() =>
 {
-    //FIXME: 
-    //await pingHost();
+    
     await isInstalled();
     await rhash();
-    await Mongodelete();
-    await Mongocreate();
-    await pm2StopR();
-    await pm2DeleteR();
-    await pm2StartR();
+    if (($('#rbOui').is(':checked'))) {
+        console.log('rb oui est coché');
+        await Mongodelete();
+        await Mongocreate();
+        await pm2StopR();
+        await pm2DeleteR();
+        await pm2StartR();
+    }
+    else{
+       console.log('rb non cohé');
+        await pm2StopR();
+        await pm2DeleteR();
+        await pm2StartR();
+    }
+   
+    
    
 }

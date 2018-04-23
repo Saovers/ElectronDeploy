@@ -6,14 +6,18 @@ const{app, BrowserWindow,Menu} = electron ;
 
 let mainWindow;
 
-const { default: installExtension, REACT_DEVELOPER_TOOLS } = require('electron-devtools-installer');
-
-installExtension(REACT_DEVELOPER_TOOLS)
-    .then((name) => console.log(`Added Extension:  ${name}`))
-    .catch((err) => console.log('An error occurred: ', err));
+const { default: installExtension, REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS } = require('electron-devtools-installer');
 
 //Listen for app to be ready
 app.on('ready',function(){
+
+    installExtension(REACT_DEVELOPER_TOOLS)
+    .then((name) => console.log(`Added Extension:  ${name}`))
+    .catch((err) => console.log('An error occurred: ', err));
+
+    installExtension(REDUX_DEVTOOLS)
+        .then((name) => console.log(`Added Extension: ${name}`))
+        .catch((err) => console.log('An error occurred: ', err));
     //Create a window
     mainWindow = new BrowserWindow({width: 1800, height: 1200});
     //Load html into window
@@ -25,12 +29,12 @@ app.on('ready',function(){
     })); 
 
     //Build menu from template
-    const mainMenu = Menu.buildFromTemplate(mainMenuTemplate);
-    //Insert menu
-    //Menu.setApplicationMenu(mainMenu);
+   /* const mainMenu = Menu.buildFromTemplate(mainMenuTemplate);
+    Menu.setApplicationMenu(mainMenu); */
 });
 
 //Create menu template
+/*
 const mainMenuTemplate= [ 
     {
         label:'Menu',
@@ -48,4 +52,4 @@ const mainMenuTemplate= [
             }
         ]
 }
-];
+];*/
