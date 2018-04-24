@@ -9,12 +9,9 @@ var olddir;
 var nameS;
 var number =1;
 var hashToRevert=0;
-//const GIT = 'git@github.com:TRIPTYK';
 var shell = require('shelljs');
 shell.config.execPath = '/usr/bin/node';
 var hash = shell.exec(' cd ~/'+config.name+' && git log | head -n 1 | cut -c8-47', {silent:true});
-console.log('cd ~/'+config.name+' && git log | head -n 1 | cut -c8-47');
-console.log(hash);
 let SSHDirectory = shell.exec('echo $HOME', {silent:true}).replace('\n', '').replace('\r', '');
     
 
@@ -135,8 +132,7 @@ let RemoveOld = async ()=> {
 //Clone du projet dans /var/www/project/hash
 let gitclone = async ()=> {
     try{
-        console.log(' git clone ' + config.github + '/' + config.name + ' /var/www/' + config.name + '/'+hash);
-        await ssh.exec(' git clone ' + config.github + '/' + config.name + ' /var/www/' + config.name + '/'+hash);
+        await ssh.exec(' git clone ' + config.github + '/' + config.name + ' /var/www/' + config.name + '/'+hash.replace('\n', '').replace('\r', ''));
         $( ".response" ).append( "<p>Le projet " +config.name+" est cloné</p>" );
         console.log('dossier cloné');
     }
@@ -330,7 +326,7 @@ let globalInit = async() =>
     await testDir();
     await clone();
     await gitclone();
-    await Db();
+    setTimeout(Db,6000);
    
 }
 
@@ -338,12 +334,17 @@ let globalInit = async() =>
 //Listing des versions que l'on peut Revert
 var numberRevert=2;
 let revert = async ()=> {
+    console.log(numberRevert);
     let data =  await ssh.exec("cd /var/www/" + config.name + " && ls -l | nl | head -n "+numberRevert+ " | tail -1");
        console.log(data);
        $( ".response" ).append("<div>"+data+"</div>");
        numberRevert++;
        if (numberRevert<11){
         revert();
+        
+       }
+       else{
+        numberRevert=2;
        }
 }
       
@@ -353,12 +354,17 @@ let rhash = async ()=> {
     var number = $('#NRevert').val();
     console.log(number);
     if (number==""){
-        $( ".response" ).append("<div>Attention vous n'avez pas rensigné de numéro de version à Revert</div>");
+        $( ".response" ).append("<div>Attention vous n'avez pas renseigné de numéro de version à Revert</div>");
     }
-   let rhash = await ssh.exec("cd /var/www/" + config.name + " && ls -l | head -n " + number + " | tail -n 1 | cut -c42-88");
-   $( ".response" ).append("<div>la version suivante sera revert : "+rhash+"</div>");
-   console.log('La version suivantes sera revert :' + rhash);
-       hashToRevert = rhash;
+    else if(number=="0" || number =="1"){
+        $( ".response" ).append("<div>Attention vous ne pouvez pas choisir un numéro entre 0 et 1</div>");
+    }
+    else{
+        let rhash = await ssh.exec("cd /var/www/" + config.name + " && ls -l | head -n " + number + " | tail -n 1 | cut -c42-88");
+        $( ".response" ).append("<div>la version suivante sera revert : "+rhash+"</div>");
+        console.log('La version suivantes sera revert :' + rhash);
+            hashToRevert = rhash;
+    }
 }
 
 
@@ -443,12 +449,16 @@ let globalRevert = async() =>
         await pm2StopR();
         await pm2DeleteR();
         await pm2StartR();
+        
+
     }
     else{
        console.log('rb non cohé');
         await pm2StopR();
         await pm2DeleteR();
         await pm2StartR();
+        
+
     }
    
     

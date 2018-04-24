@@ -1,0 +1,32 @@
+#startClone,#startRevert,#Appliquer{
+    width:100px;
+    margin-left:5px;
+    box-shadow:1px 1px 1px;
+    cursor:pointer;
+    }
+#response{
+    background-color: black;
+    color: blanchedalmond;
+}
+#clone{
+    background-color: #4CAF50; /* Green */
+    font-size: 16px;
+    padding: 10px 24px;
+    border-radius: 8px;
+    transition-duration: 0.4s;
+}
+#revert{
+    background-color: #008CBA; /* Blue */
+    font-size: 16px;
+    padding: 10px 24px;
+    border-radius: 8px;
+    transition-duration: 0.4s;
+}
+#clone:hover{
+    background-color:#e7e7e7; 
+    color: black; 
+}
+#revert:hover{
+    background-color:#e7e7e7; 
+    color: black; 
+}
