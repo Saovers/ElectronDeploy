@@ -46,6 +46,7 @@ htmlRevert += '<div> <p>Souhaitez-vous revert la base de données également?';
 htmlRevert += '<form action=""><input type="radio" name="gender" id="rbOui" value="oui">Oui<br><input type="radio" name="gender" id="rbNon"  checked="checked" value="non">Non</form>';
 
 
+    //Fonction qui va placer les éléments pour le clone
     function add_clone(){
         document.getElementById("place").innerHTML = html;
         document.getElementById("response").innerHTML ="";
@@ -55,8 +56,8 @@ htmlRevert += '<form action=""><input type="radio" name="gender" id="rbOui" valu
         document.getElementById("clone").style.backgroundColor = "#A9A9A9";
         document.getElementById("revert").style.backgroundColor = "";
         const fs = require('fs');
-        var contents = fs.readFileSync("config.json");
-        //var contents = fs.readFileSync("./resources/app/config.json");
+        //var contents = fs.readFileSync("config.json");
+        var contents = fs.readFileSync("./resources/app/config.json");
         var json = JSON.parse(contents);
         document.getElementById("host").defaultValue = json.host;
         document.getElementById("name").defaultValue = json.name;
@@ -65,6 +66,8 @@ htmlRevert += '<form action=""><input type="radio" name="gender" id="rbOui" valu
         document.getElementById("user").defaultValue = json.user;
     }
 
+
+    //Fonction qui va placer les différents éléments du Revert
     function add_revert(){
         document.getElementById("response").innerHTML ="";
         document.getElementById('startClone').style.visibility = 'hidden';
@@ -73,8 +76,8 @@ htmlRevert += '<form action=""><input type="radio" name="gender" id="rbOui" valu
         document.getElementById("place").innerHTML = '';
         document.getElementById("place").innerHTML = htmlRevert;
         const fs = require('fs');
-        var contents = fs.readFileSync("config.json");
-        //var contents = fs.readFileSync("./resources/app/config.json");
+        //var contents = fs.readFileSync("config.json");
+        var contents = fs.readFileSync("./resources/app/config.json");
         var json = JSON.parse(contents);
         document.getElementById("host").defaultValue = json.host;
         document.getElementById("revert").style.backgroundColor = "#A9A9A9";
@@ -88,6 +91,8 @@ htmlRevert += '<form action=""><input type="radio" name="gender" id="rbOui" valu
         document.getElementById("place2").innerHTML = '';
     }
     
+
+    //Focntion qui va récupérer les éléments depuis le fichier de config.json pour les placer dans les EditText par défaut
     function writeJ(){
         const fs = require('fs');
         const host = document.getElementById("host").value;
@@ -103,10 +108,13 @@ htmlRevert += '<form action=""><input type="radio" name="gender" id="rbOui" valu
             user:user
         };
         let data = JSON.stringify(test);
-        fs.writeFileSync('config.json',data);
-        //fs.writeFileSync('./resources/app/config.json',data);
+        //fs.writeFileSync('config.json',data);
+        fs.writeFileSync('./resources/app/config.json',data);
         location.reload();
     }
+
+
+    //Apelle la fonction globalInit depuis tools.js
     function ip(){
         pingHost();
         if(document.getElementById('resH').innerHTML = "Host OK"){
@@ -115,10 +123,11 @@ htmlRevert += '<form action=""><input type="radio" name="gender" id="rbOui" valu
         else{
             document.getElementById("response").innerHTML ="Une erreur est survenue";
 
-        }
-        
+        } 
     }
 
+
+    //Apelle la fonction globalRevert depuis tools.js
     function ipR(){
         pingHost();
         if(document.getElementById('resH').innerHTML = "Host OK"){
@@ -127,7 +136,6 @@ htmlRevert += '<form action=""><input type="radio" name="gender" id="rbOui" valu
         else{
             document.getElementById("response").innerHTML ="L'host n'est pas joignable veuillez changer votre IP et vérifier que le serveur soit disponible";
         }
-    
     }
    
     

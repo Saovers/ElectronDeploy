@@ -25,7 +25,7 @@ var sshconfig = {
   var ssh = new SSH2Promise(sshconfig);
 
 
-//Test ping à l'ip du serveur
+//Test ping sur l'ip du serveur
 let pingHost =async () =>{
     var hosts = [config.host];
     try{
@@ -41,7 +41,6 @@ let pingHost =async () =>{
                             console.log('Host unreachable');
                             document.getElementById('resH').innerHTML = "Host Down";
                             document.getElementById('place2').innerHTML = "Impossible de continuer plus loin si l'host est down veuiller changer l'ip de votre serveur";
-                           
                         }
             });             
         });
@@ -421,6 +420,8 @@ let pm2DeleteR = async ()=> {
             
           }  
 }
+
+
 //Fonction qui va démarrer le processus pm2 de la version a revert
 let pm2StartR = async ()=> {
    try {
@@ -439,7 +440,6 @@ let pm2StartR = async ()=> {
 
 let globalRevert = async() =>
 {
-    
     await isInstalled();
     await rhash();
     if (($('#rbOui').is(':checked'))) {
@@ -449,18 +449,11 @@ let globalRevert = async() =>
         await pm2StopR();
         await pm2DeleteR();
         await pm2StartR();
-        
-
     }
     else{
        console.log('rb non cohé');
         await pm2StopR();
         await pm2DeleteR();
         await pm2StartR();
-        
-
     }
-   
-    
-   
 }
