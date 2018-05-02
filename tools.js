@@ -80,7 +80,7 @@ let isInstalled = async ()=> {
  
 //Création du dossier s'il n'existe pas en /var/wwww/project
 let testDir = async()=> {
-    await ssh.exec('mkdir -p /var/www/' + config.name);
+    await ssh.exec('mkdir -p /var/www/' + config.name+ ' && git init');
     $( ".response" ).append( "<p>Le dossier principale existe déjà</p>" );
     console.log('Le dossier /var/www/'+config.name+' existe déjà');
 }
@@ -332,18 +332,20 @@ let globalInit = async() =>
 /* ------------------------------------------------------------------------------------Partie Revert-------------------------------------------------------------------*/
 //Listing des versions que l'on peut Revert
 var numberRevert=2;
+var number=1;
 let revert = async ()=> {
-    console.log(numberRevert);
+    let NbreDir = await ssh.exec('cd /var/www/' + config.name + ' && ls -lt | nl | tail -n 1 | cut -c5-6');
     let data =  await ssh.exec("cd /var/www/" + config.name + " && ls -l | nl | head -n "+numberRevert+ " | tail -1");
        console.log(data);
        $( ".response" ).append("<div>"+data+"</div>");
-       numberRevert++;
-       if (numberRevert<11){
+       if (number<(NbreDir-1)){
         revert();
-        
+        number++;
+        numberRevert++;
        }
        else{
         numberRevert=2;
+        number=1;
        }
 }
       
