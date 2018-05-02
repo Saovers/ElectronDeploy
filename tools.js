@@ -427,6 +427,7 @@ let pm2StartR = async ()=> {
    try {
        //FIXME: Endroit du script app.js
    await ssh.exec('pm2 start /var/www/' + config.name + '/' + hashToRevert.replace('\n', '').replace('\r', '') + '/app.js --name=' + config.name)
+   $( ".response" ).append( "<p>PM2 Démarrer </p>" );
        console.log('PM2 Démarrer');
        
    }
