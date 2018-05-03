@@ -15,7 +15,7 @@
     <body>
             <h1> Déploiement d'application node JS</h1>
             <h3>Choisissez entre le clone ou le revert</h3>
-            <h5>N'oubliez pas que votre projet doit se trouver dans ~ / </h5>
+            <h5>Spécifiez l'endroit ou se situe votre projet dans la case adéquate pour le clone sous ce format : /var/www Ne terminez pas avec un /  </h5>
             <h5>Si vous avez une base de données et que vous souhaitez transmettre des fichiers de MAJ ceux-ci doivent
                 se trouver dans ~ / Nom_du_projet / mongoUpdate </h5>
             <button onclick="add_clone()" type="button" id="clone">Clone</button>
@@ -38,6 +38,7 @@
 html += '<div> <p>Nom de la base de données : <input type="text" id="db"></p></br></div>';
 html += '<div> <p>Nom du github : <input type="text" id="github" value=></p></br></div>';
 html += '<div> <p>Nom de l\'utilisateur sur le serveur : <input type="text" id="user" value=></p></br></div>';
+html += '<div> <p>Endroit ou est votre projet : <input type="text" id="dir" value=></p></br></div>';
 html += '<div> <p>Avez vous une base de donnée déjà présente sur le serveur?';
 html += '<form action=""><input type="radio" name="gender" id="rbOui" value="oui">Oui<br><input type="radio" name="gender" id="rbNon" onclick=Dscript_maj() value="non">Non</br><input type="radio" name="gender" id="rbNull" checked="checked" value="null">Je ne souhaite pas utiliser de base de données</form>';
 
@@ -64,6 +65,8 @@ htmlRevert += '<form action=""><input type="radio" name="gender" id="rbOui" valu
         document.getElementById("db").defaultValue = json.db;
         document.getElementById("github").defaultValue = json.github;
         document.getElementById("user").defaultValue = json.user;
+        document.getElementById("dir").defaultValue = json.dir;
+
     }
 
 
@@ -100,12 +103,14 @@ htmlRevert += '<form action=""><input type="radio" name="gender" id="rbOui" valu
         const db = document.getElementById("db").value;
         const github = document.getElementById("github").value;
         const user = document.getElementById("user").value;
+        const dir = document.getElementById("dir").value;
         let test = {
             host:host,
             name:name,
             db:db,
             github:github,
-            user:user
+            user:user,
+            dir:dir
         };
         let data = JSON.stringify(test);
         fs.writeFileSync('config.json',data);

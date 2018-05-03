@@ -11,7 +11,7 @@ var number =1;
 var hashToRevert=0;
 var shell = require('shelljs');
 shell.config.execPath = '/usr/bin/node';
-var hash = shell.exec(' cd ~/'+config.name+' && git log | head -n 1 | cut -c8-47', {silent:true});
+var hash = shell.exec(' cd '+config.dir+'/'+config.name+' && git log | head -n 1 | cut -c8-47', {silent:true});
 let SSHDirectory = shell.exec('echo $HOME', {silent:true}).replace('\n', '').replace('\r', '');
     
 
@@ -165,7 +165,7 @@ let Db = async () =>{
 let copieMongoUpdate = async ()=> {
     try{
         //FIXME: Tous les projets devront se trouver en ~ si on laisse la fonction comme ça
-        await shell.exec('scp -r -p  ~/'+config.name+'/mongoUpdate ' + config.user + '@' + config.host + ':/var/www/' + config.name + '/' + hash.replace('\n', '').replace('\r', ''), { silent: true });
+        await shell.exec('scp -r -p  '+config.dir+'/'+config.name+'/mongoUpdate ' + config.user + '@' + config.host + ':/var/www/' + config.name + '/' + hash.replace('\n', '').replace('\r', ''), { silent: true });
         $( ".response" ).append( "<p>Le dossier mongoUpdate à été transmis sur le serveur</p>" );
     }
     catch(error){
